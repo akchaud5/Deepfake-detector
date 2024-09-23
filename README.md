@@ -4,7 +4,7 @@ _This implementation borrows heavily from RECCE model._
 ### Introduction
 This repository contains implementation of a model- _Attention Network for Deepfake Detection_. The input for the model is taken in the form of extracted images from vedios or simply images. The model is based on PyTorch. The model achieves Accuracy of 98.12%  and AUC-ROC of  0.998 on Dataset - CelebDF(v2). 
 
-###Architecture
+### Architecture
 We propose a model which identifies features important for detection of forgery in  RGB-spatial domain as well as the frequency domain. Hence we propose to use frequency filters so that minute instances of frequency domain can be used for detection of forgery inspired by works like model M2TR. 
 
 For spatial domain(RGB): We use the Xception model as a baseline. Input image -RGB with white noise is fed to the encoder. The aim is to learn a robust representation of real faces. Since forgery faces could be based on varied methods, learning a constrained representation of forged faces would not help our case. Reconstruction loss is calculated along with metric loss. Metric learning loss is used for each decoder and output of the last encoder. 
