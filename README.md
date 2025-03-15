@@ -1,4 +1,4 @@
-# Attention_Network_for_Deepfake_Detection
+# Deepfake_detector
 _This implementation borrows heavily from RECCE model._
 
 ### Introduction
