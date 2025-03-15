@@ -1,0 +1,37 @@
+model:
+  name: Recce
+  num_classes: 2
+
+config:
+  lambda_1: 0.1
+  lambda_2: 0.1
+  distribute:
+    backend: nccl
+  optimizer:
+    name: adam
+    lr: 0.0002
+    weight_decay: 0.00001
+  scheduler:
+    name: StepLR
+    step_size: 22500
+    gamma: 0.5
+  resume: True
+  resume_best: False
+  id: Celebdf111
+  loss: binary_ce
+  metric: Acc
+  debug: False
+  device: "cuda:0"
+  ckpt: "/content/drive/MyDrive/model01/step_2048_model"
+  log_steps: 100
+
+data:
+  train_batch_size: 32
+  val_batch_size: 64
+  test_batch_size: 64
+  name: DFDC
+  file: "/content/drive/MyDrive/model01/RECCE-main/config/dataset/dfdc.yml"
+  train_branch: "train_cfg"
+  val_branch: "test_cfg"
+  test_branch: "test_cfg"
+  num_workers: 1
