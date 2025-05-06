@@ -1,29 +1,125 @@
-# Attention_Network_for_Deepfake_Detection
-_This implementation borrows heavily from RECCE model._
+# Attention Network for Deepfake Detection (RECCE)
 
-### Introduction
-This repository contains implementation of a model- _Attention Network for Deepfake Detection_. The input for the model is taken in the form of extracted images from vedios or simply images. The model is based on PyTorch. The model achieves Accuracy of 98.12%  and AUC-ROC of  0.998 on Dataset - CelebDF(v2). 
+This repository provides an end-to-end PyTorch implementation of the RECCE (Reconstruction-Classification) deepfake detection model, which fuses spatial RGB features with frequency-domain analysis and guided attention.
 
-### Architecture
-We propose a model which identifies features important for detection of forgery in  RGB-spatial domain as well as the frequency domain. Hence we propose to use frequency filters so that minute instances of frequency domain can be used for detection of forgery inspired by works like model M2TR. 
+## Features
+- Xception-based encoder with white-noise augmentation
+- Reconstruction-guided attention and contrastive losses
+- Frequency-domain filtering via learnable FFT layers
+- Cross-modality fusion (RGB ↔ frequency) with CMA blocks
+- Optional graph reasoning for global context aggregation
+- YAML-driven configuration for models, datasets, optimizers, schedulers
+- Single- and multi-GPU training (PyTorch DDP)
+- Checkpointing, TensorBoard logging, and test harness
 
-For spatial domain(RGB): We use the Xception model as a baseline. Input image -RGB with white noise is fed to the encoder. The aim is to learn a robust representation of real faces. Since forgery faces could be based on varied methods, learning a constrained representation of forged faces would not help our case. Reconstruction loss is calculated along with metric loss. Metric learning loss is used for each decoder and output of the last encoder. 
+## Requirements
+- Python 3.7+
+- torch >=1.7.0
+- torchvision
+- timm
+- albumentations
+- numpy
+- opencv-python
+- pyyaml
+- scikit-learn
+- matplotlib
+- tqdm
+- tensorboard
 
-For frequency Domain: The embedding of encoder after a few layers are applied with 2DFFT along spatial dimensions. We achieve spectrum representation as a result.
+Install dependencies:
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-CMF block: The embedding from spectrum representation is fused using cross modality fusion block(CMF).  It consists of first feeding the embeddings of encoder-decoder  through 1X1 convolution individually. Then they are flattened along spatial dimensions to obtain 2D embedding and a fused feature is calculated. Further we apply 3X3 convolution along with residual connection.
-The resultant features  are used for forgery detection both in spatial  as well as frequency domain. We further stack 4 CMF blocks on top of each other. Then a simple classification layer is used for obtaining discrete output. 
+## Directory Structure
+```
+.
+├── config
+│   ├── Recce.yml                 # Main experiment config
+│   └── dataset
+│       ├── CelebDF.yml           # CelebDF dataset config
+│       └── dfdc.yml              # DFDC dataset config
+├── dataset                       # Dataset modules and loaders
+├── loss                          # Loss functions
+├── model
+│   ├── common.py                 # Custom layers and utilities
+│   └── network
+│       └── Recce.py              # Main RECCE model definition
+├── optimizer                     # Optimizer factory
+├── scheduler                     # Learning rate schedulers
+├── trainer
+│   ├── abstract_trainer.py
+│   ├── exp_mgpu_trainer.py       # Multi-GPU training loop
+│   └── exp_tester.py             # Testing/inference loop
+├── train.py                      # Training entrypoint
+├── test.py                       # Testing entrypoint
+├── requirements.txt              # Python dependencies
+└── README.md                     # Project documentation
+```
 
+## Configuration
+All settings are driven by YAML files under `config/`.
 
-### Preprocessing Data
-The model takes data in the form of images- preferrably of uniform size. If the data is in the form of vedios, images must be extracted using various preexisting models, this implementation uses RetinaFace to extract images of uniform size and uniformly throughout the temporal interval of the vedio respectively.
+1. **Main config**: `config/Recce.yml`
+   - `model`: architecture name and parameters
+   - `config`: optimizer, scheduler, device, checkpoint_dir, log_dir, etc.
+   - `data`: dataset name, batch sizes, paths to dataset config, number of workers
 
-### Dataset
-The model could be trained on various datasets like CelebDF, FaceForencis++, DFDC, etc. 
--This repository contains configurations for CelebDF and DFDC dataset. 
+2. **Dataset config**: `config/dataset/*.yml`
+```yaml
+train_cfg:
+  root: "/path/to/images"
+  split: "train"
+  transforms:
+    - name: "Resize"
+      params: {height: 299, width: 299}
+    - name: "Normalize"
+      params: {mean: [0.5,0.5,0.5], std: [0.5,0.5,0.5]}
+test_cfg:
+  root: "/path/to/images"
+  split: "test"
+  transforms:
+    - name: "Resize"
+      params: {height: 299, width: 299}
+    - name: "Normalize"
+      params: {mean: [0.5,0.5,0.5], std: [0.5,0.5,0.5]}
+```
 
-### Training and Testing
-The model is trained on CelebDF-v2 dataset and tested on CelebDF-v2 and DFDC datasets(i.e training and testing on same dataset and training and testing on different datasets.)
+## Usage
+
+### Training
+**Single GPU / CPU**
+```bash
+python train.py --config config/Recce.yml
+```
+
+**Multi-GPU (PyTorch ≥1.9)**
+```bash
+torchrun --nproc_per_node=4 train.py --config config/Recce.yml
+```
+
+All checkpoints and TensorBoard logs are saved under the directories specified in `config.checkpoint_dir` and `config.log_dir`.
+
+### Testing / Inference
+Once you have a trained checkpoint (`best_model.pt`), run:
+```bash
+python test.py --config config/Recce.yml
+```
+To visualize sample predictions, add `-d`:
+```bash
+python test.py --config config/Recce.yml -d
+```
+Results and logs are written to `checkpoint_dir/Recce/<run_id>/`.
+
+## Notes
+- By default, paths are set for Google Colab—please update to your local or cloud storage paths.
+- On Apple M1/M2 (macOS), set `device: "mps"` in `config/Recce.yml` for inference or small-scale testing. Full training requires CUDA GPUs.
+- Make sure your dataset directories match the structure expected by the dataset configs.
+
+## Citation
+If you use this code in your research, please cite our paper:
+> [Insert paper title, authors, and reference here]
 
 
 
