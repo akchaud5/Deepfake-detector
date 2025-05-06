@@ -12,13 +12,16 @@ import yaml
 
 class ExpMultiGpuTrainer(AbstractTrainer):
     def _initiated_settings(self, model_cfg, data_cfg, config_cfg):
-        self.checkpoint_dir = "/content/drive/MyDrive/model01"
+        # Directories for checkpoints and logs can be overridden in the config
+        self.checkpoint_dir = config_cfg.get('checkpoint_dir', 'checkpoints')
         os.makedirs(self.checkpoint_dir, exist_ok=True)
+        log_dir = config_cfg.get('log_dir', os.path.join(self.checkpoint_dir, 'tensorboard_logs'))
+        os.makedirs(log_dir, exist_ok=True)
+        self.writer = SummaryWriter(log_dir=log_dir)
         self.debug = config_cfg.get('debug', False)
         self.resume = config_cfg.get('resume', False)
         self.device = torch.device(config_cfg.get('device', 'cpu'))
         self.local_rank = config_cfg.get('local_rank', 0)
-        self.writer = SummaryWriter(log_dir="/content/drive/MyDrive/model01/tensorboard/logs")
 
         self.train_loader = self._get_data_loader(data_cfg, branch=data_cfg['train_branch'], stage='train')
         self.val_loader = self._get_data_loader(data_cfg, branch=data_cfg['val_branch'], stage='val')
@@ -237,6 +240,7 @@ class ExpMultiGpuTrainer(AbstractTrainer):
         dataset = CelebDF(branch_cfg)
         shuffle = stage == 'train'
         batch_size = cfg[f'{stage}_batch_size']
-        loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=1)  # Set num_workers to 1
+        num_workers = cfg.get('num_workers', 1)
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         print(f"Data for {stage} loaded. Batch size: {batch_size}")  # Confirm data loaded
         return loader

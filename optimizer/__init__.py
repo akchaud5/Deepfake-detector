@@ -19,7 +19,7 @@ key2opt = {
 
 def get_optimizer(optimizer_name=None):
     if optimizer_name is None:
-        print("Using default 'SGD' optimizer")
+        print("Using default optimizer: 'sgd'")
         return SGD
 
     else:

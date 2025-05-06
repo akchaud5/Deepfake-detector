@@ -7,7 +7,7 @@ from trainer.utils import setup_for_distributed, cleanup
 
 def main():
     parser = argparse.ArgumentParser(description="config")
-    parser.add_argument("--config", type=str, default="/content/drive/MyDrive/model01/RECCE-main/config/Recce.yml", help="Specify the path of the configuration file to be used.")
+    parser.add_argument("--config", type=str, default="config/Recce.yml", help="Path to the YAML configuration file.")
     args = parser.parse_args()
     
     # Load main configuration
